@@ -1,13 +1,13 @@
 package main
 
 import (
-	"database/sql"
 	"embed"
 	"html/template"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/jackc/pgx/v5"
 	log "github.com/sirupsen/logrus"
 	"github.com/sivaprasadreddy/bookmarks-go/bookmarks"
 	"github.com/sivaprasadreddy/bookmarks-go/config"
@@ -16,7 +16,7 @@ import (
 
 type App struct {
 	Router             *mux.Router
-	db                 *sql.DB
+	db                 *pgx.Conn
 	bookmarkController *bookmarks.BookmarkController
 }
 

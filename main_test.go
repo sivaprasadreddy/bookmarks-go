@@ -7,18 +7,72 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/sivaprasadreddy/bookmarks-go/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-const postgresTestUserName = "test"
-const postgresTestPassword = "test"
-const postgresTestDatabase = "test"
+const postgresImage = "postgres:15.3-alpine"
+const postgresPort = "5432"
+const postgresUserName = "postgres"
+const postgresPassword = "postgres"
+const postgresDbName = "postgres"
+
+type PostgresContainer struct {
+	Container testcontainers.Container
+	CloseFn   func()
+	Host      string
+	Port      string
+	Database  string
+	Username  string
+	Password  string
+}
+
+// SetupPostgres creates an instance of the postgres container type
+func SetupPostgres(ctx context.Context) (*PostgresContainer, error) {
+	container, err := postgres.RunContainer(ctx,
+		testcontainers.WithImage(postgresImage),
+		postgres.WithDatabase(postgresDbName),
+		postgres.WithUsername(postgresUserName),
+		postgres.WithPassword(postgresPassword),
+		testcontainers.WithWaitStrategy(wait.ForLog("database system is ready to accept connections").WithOccurrence(2).WithStartupTimeout(5*time.Second)),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	host, _ := container.Host(ctx)
+	hostPort, _ := container.MappedPort(ctx, postgresPort)
+
+	return &PostgresContainer{
+		Container: container,
+		CloseFn: func() {
+			if err := container.Terminate(ctx); err != nil {
+				log.Fatalf("error terminating postgres container: %s", err)
+			}
+		},
+		Host:     host,
+		Port:     hostPort.Port(),
+		Database: postgresDbName,
+		Username: postgresUserName,
+		Password: postgresPassword,
+	}, nil
+}
+
+func overrideEnv(pgC *PostgresContainer) {
+	os.Setenv("APP_DB_HOST", pgC.Host)
+	os.Setenv("APP_DB_PORT", fmt.Sprint(pgC.Port))
+	os.Setenv("APP_DB_USERNAME", pgC.Username)
+	os.Setenv("APP_DB_PASSWORD", pgC.Password)
+	os.Setenv("APP_DB_NAME", pgC.Database)
+	os.Setenv("APP_DB_RUN_MIGRATIONS", "true")
+}
 
 var cfg config.AppConfig
 var app *App
@@ -27,13 +81,13 @@ var router *mux.Router
 func TestMain(m *testing.M) {
 	//Common Setup
 	ctx := context.Background()
-	pgC, terminateContainerFn, err := SetupTestDatabase(ctx)
+	pgContainer, err := SetupPostgres(ctx)
 	if err != nil {
 		log.Error("failed to setup Postgres container")
 		panic(err)
 	}
-	defer terminateContainerFn()
-	overrideEnv(ctx, pgC)
+	defer pgContainer.CloseFn()
+	overrideEnv(pgContainer)
 
 	cfg = config.GetConfig()
 	app = NewApp(cfg)
@@ -43,49 +97,6 @@ func TestMain(m *testing.M) {
 
 	//Common Teardown
 	os.Exit(code)
-}
-
-func SetupTestDatabase(ctx context.Context) (testcontainers.Container, func(), error) {
-	req := testcontainers.ContainerRequest{
-		Image: "postgres:12.4-alpine",
-		Env: map[string]string{
-			"POSTGRES_DB":       postgresTestDatabase,
-			"POSTGRES_USER":     postgresTestUserName,
-			"POSTGRES_PASSWORD": postgresTestPassword,
-		},
-		ExposedPorts: []string{"5432/tcp"},
-		WaitingFor:   wait.ForListeningPort("5432/tcp"),
-	}
-
-	pgC, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: req,
-		Started:          true,
-	})
-	if err != nil {
-		panic(fmt.Sprintf("%v", err))
-	}
-	closeContainer := func() {
-		log.Info("terminating container")
-		err := pgC.Terminate(ctx)
-		if err != nil {
-			log.Errorf("error terminating postgres container: %s", err)
-			panic(fmt.Sprintf("%v", err))
-		}
-	}
-
-	return pgC, closeContainer, nil
-}
-
-func overrideEnv(ctx context.Context, pgC testcontainers.Container) {
-	host, _ := pgC.Host(ctx)
-	p, _ := pgC.MappedPort(ctx, "5432/tcp")
-	port := p.Int()
-	os.Setenv("APP_DB_HOST", host)
-	os.Setenv("APP_DB_PORT", fmt.Sprint(port))
-	os.Setenv("APP_DB_USERNAME", postgresTestUserName)
-	os.Setenv("APP_DB_PASSWORD", postgresTestPassword)
-	os.Setenv("APP_DB_NAME", postgresTestDatabase)
-	os.Setenv("APP_DB_RUN_MIGRATIONS", "true")
 }
 
 func TestGetAllBookmarks(t *testing.T) {

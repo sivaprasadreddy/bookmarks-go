@@ -1,29 +1,28 @@
 package database
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
-
-	_ "github.com/lib/pq"
-	log "github.com/sirupsen/logrus"
-	"github.com/sivaprasadreddy/bookmarks-go/config"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgx/v5"
+	log "github.com/sirupsen/logrus"
+	"github.com/sivaprasadreddy/bookmarks-go/config"
 )
 
-func GetDb(config config.AppConfig) *sql.DB {
+func GetDb(config config.AppConfig) *pgx.Conn {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		config.DbHost, config.DbPort, config.DbUserName, config.DbPassword, config.DbDatabase)
-	db, err := sql.Open("postgres", connStr)
+	conn, err := pgx.Connect(context.Background(), connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
 	if config.DbRunMigrations {
 		runMigrations(config)
 	}
-	return db
+	return conn
 }
 
 func runMigrations(config config.AppConfig) {
