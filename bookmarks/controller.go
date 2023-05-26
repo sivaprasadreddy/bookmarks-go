@@ -2,13 +2,14 @@ package bookmarks
 
 import (
 	"encoding/json"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/sivaprasadreddy/bookmarks-go/helpers"
 	"github.com/sivaprasadreddy/bookmarks-go/models"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 type BookmarkController struct {

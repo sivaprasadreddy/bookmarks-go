@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+
 	_ "github.com/lib/pq"
 	log "github.com/sirupsen/logrus"
 	"github.com/sivaprasadreddy/bookmarks-go/config"

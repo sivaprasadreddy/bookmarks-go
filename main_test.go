@@ -3,16 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/sivaprasadreddy/bookmarks-go/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"testing"
 )
 
 const postgresTestUserName = "test"

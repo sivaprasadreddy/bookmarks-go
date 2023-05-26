@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/sivaprasadreddy/bookmarks-go/config"
 	"net/http"
 	"time"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/sivaprasadreddy/bookmarks-go/config"
 )
 
 func main() {

@@ -3,14 +3,15 @@ package main
 import (
 	"database/sql"
 	"embed"
+	"html/template"
+	"net/http"
+	"os"
+
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/sivaprasadreddy/bookmarks-go/bookmarks"
 	"github.com/sivaprasadreddy/bookmarks-go/config"
 	"github.com/sivaprasadreddy/bookmarks-go/database"
-	"html/template"
-	"net/http"
-	"os"
 )
 
 type App struct {

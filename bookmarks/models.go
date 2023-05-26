@@ -1,9 +1,10 @@
 package bookmarks
 
 import (
+	"time"
+
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
-	"time"
 )
 
 type BookmarkModel struct {

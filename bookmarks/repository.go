@@ -3,6 +3,7 @@ package bookmarks
 import (
 	"context"
 	"database/sql"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/sivaprasadreddy/bookmarks-go/models"
 )

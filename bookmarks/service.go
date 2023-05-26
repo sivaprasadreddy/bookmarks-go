@@ -1,9 +1,10 @@
 package bookmarks
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/sivaprasadreddy/bookmarks-go/models"
-	"time"
 )
 
 type bookmarkService struct {

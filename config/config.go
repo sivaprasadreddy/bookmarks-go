@@ -2,11 +2,12 @@ package config
 
 import (
 	"errors"
-	"github.com/joho/godotenv"
-	log "github.com/sirupsen/logrus"
 	"io/fs"
 	"os"
 	"strconv"
+
+	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
 )
 
 type AppConfig struct {
