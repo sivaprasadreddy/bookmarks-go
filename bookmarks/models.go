@@ -7,7 +7,7 @@ import (
 	"github.com/go-ozzo/ozzo-validation/is"
 )
 
-type BookmarkModel struct {
+type Bookmark struct {
 	Id          int       `json:"id"`
 	Title       string    `json:"title"`
 	Url         string    `json:"url"`

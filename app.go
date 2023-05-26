@@ -34,8 +34,7 @@ func (app *App) init(config config.AppConfig) {
 	app.db = database.GetDb(config)
 
 	bookmarksRepo := bookmarks.NewBookmarkRepo(app.db)
-	bookmarkSvc := bookmarks.NewBookmarkService(bookmarksRepo)
-	app.bookmarkController = bookmarks.NewBookmarkController(bookmarkSvc)
+	app.bookmarkController = bookmarks.NewBookmarkController(bookmarksRepo)
 
 	app.Router = app.setupRoutes()
 }
