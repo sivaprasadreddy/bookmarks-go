@@ -1,68 +1,70 @@
 package bookmarks
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"github.com/sivaprasadreddy/bookmarks-go/helpers"
 )
 
 type BookmarkController struct {
-	repository *BookmarkRepository
+	repository BookmarkRepository
 }
 
-func NewBookmarkController(repository *BookmarkRepository) *BookmarkController {
+func NewBookmarkController(repository BookmarkRepository) *BookmarkController {
 	return &BookmarkController{repository}
 }
 
-func (b *BookmarkController) GetAll(w http.ResponseWriter, r *http.Request) {
+func (b BookmarkController) GetAll(c *gin.Context) {
 	log.Info("Fetching all bookmarks")
-	bookmarks, err := b.repository.GetBookmarks()
+	ctx := c.Request.Context()
+	bookmarks, err := b.repository.GetBookmarks(ctx)
 	if err != nil {
 		log.Errorf("Error while fetching bookmarks")
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to fetch bookmarks")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "Unable to fetch bookmarks",
+		})
 		return
 	}
 	if bookmarks == nil {
 		bookmarks = []Bookmark{}
 	}
-	helpers.RespondWithJSON(w, http.StatusOK, bookmarks)
+	c.JSON(http.StatusOK, bookmarks)
 }
 
-func (b *BookmarkController) GetById(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.Atoi(vars["id"])
+func (b BookmarkController) GetById(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
 	log.Infof("Fetching bookmark by id %d", id)
-	bookmark, err := b.repository.GetBookmarkById(id)
+	ctx := c.Request.Context()
+	bookmark, err := b.repository.GetBookmarkById(ctx, id)
 	if err != nil {
 		log.Errorf("Error while fetching bookmark by id")
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to fetch bookmark by id")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "Unable to fetch bookmark by id",
+		})
 		return
 	}
-	helpers.RespondWithJSON(w, http.StatusOK, bookmark)
+	c.JSON(http.StatusOK, bookmark)
 }
 
-func (b *BookmarkController) Create(w http.ResponseWriter, r *http.Request) {
+func (b BookmarkController) Create(c *gin.Context) {
 	log.Info("create bookmark")
-	contentType := r.Header.Get("Content-Type")
-	if contentType != "" && contentType != "application/json" {
-		helpers.RespondWithError(w, http.StatusUnsupportedMediaType, "Content-Type header is not application/json")
-		return
-	}
+	ctx := c.Request.Context()
 	var createBookmark CreateBookmarkModel
-	err := json.NewDecoder(r.Body).Decode(&createBookmark)
-	if err != nil {
-		helpers.RespondWithError(w, http.StatusBadRequest, "Unable to parse request body. Error: "+err.Error())
+	if err := c.BindJSON(&createBookmark); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "Unable to parse request body. Error: " + err.Error(),
+		})
 		return
 	}
-	err = createBookmark.Validate()
+	err := createBookmark.Validate()
 	if err != nil {
 		log.Errorf("Error while create bookmark %v", err)
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to create bookmark")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "Unable to create bookmark",
+		})
 		return
 	}
 	bookmark := Bookmark{
@@ -70,46 +72,53 @@ func (b *BookmarkController) Create(w http.ResponseWriter, r *http.Request) {
 		Url:         createBookmark.Url,
 		CreatedDate: time.Time{},
 	}
-	bookmark, err = b.repository.CreateBookmark(bookmark)
+	bookmark, err = b.repository.CreateBookmark(ctx, bookmark)
 	if err != nil {
 		log.Errorf("Error while create bookmark %v", err)
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to create bookmark")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "Unable to create bookmark",
+		})
 		return
 	}
-	helpers.RespondWithJSON(w, http.StatusCreated, bookmark)
+	c.JSON(http.StatusCreated, bookmark)
 }
 
-func (b *BookmarkController) Update(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.Atoi(vars["id"])
+func (b BookmarkController) Update(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
 	log.Infof("update bookmark id=%d", id)
+	ctx := c.Request.Context()
 	var bookmark Bookmark
-	err := json.NewDecoder(r.Body).Decode(&bookmark)
-	if err != nil {
-		helpers.RespondWithError(w, http.StatusBadRequest, "Unable to parse request body. Error: "+err.Error())
+	if err := c.BindJSON(&bookmark); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "Unable to parse request body. Error: " + err.Error(),
+		})
 		return
 	}
 	bookmark.Id = id
 	bookmark.UpdatedDate = time.Now()
-	bookmark, err = b.repository.UpdateBookmark(bookmark)
+	bookmark, err := b.repository.UpdateBookmark(ctx, bookmark)
 	if err != nil {
 		log.Errorf("Error while update bookmark")
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to update bookmark")
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "Unable to update bookmark",
+		})
 		return
 	}
-	bookmark, _ = b.repository.GetBookmarkById(id)
-	helpers.RespondWithJSON(w, http.StatusOK, bookmark)
+	bookmark, _ = b.repository.GetBookmarkById(c.Request.Context(), id)
+	c.JSON(http.StatusOK, bookmark)
 }
 
-func (b *BookmarkController) Delete(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.Atoi(vars["id"])
+func (b BookmarkController) Delete(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
 	log.Infof("delete bookmark with id=%d", id)
-	err := b.repository.DeleteBookmark(id)
+	ctx := c.Request.Context()
+	err := b.repository.DeleteBookmark(ctx, id)
 	if err != nil {
 		log.Errorf("Error while deleting bookmark")
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Unable to delete bookmark")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "Unable to delete bookmark",
+		})
 		return
 	}
-	helpers.RespondWithJSON(w, http.StatusOK, nil)
+	c.JSON(http.StatusOK, nil)
 }

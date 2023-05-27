@@ -5,8 +5,9 @@ import (
 	"html/template"
 	"net/http"
 	"os"
+	"path"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	log "github.com/sirupsen/logrus"
 	"github.com/sivaprasadreddy/bookmarks-go/bookmarks"
@@ -15,7 +16,7 @@ import (
 )
 
 type App struct {
-	Router             *mux.Router
+	Router             *gin.Engine
 	db                 *pgx.Conn
 	bookmarkController *bookmarks.BookmarkController
 }
@@ -43,37 +44,34 @@ func (app *App) init(config config.AppConfig) {
 var assetData embed.FS
 
 //go:embed static
-var staticFiles embed.FS
+var staticFS embed.FS
 
-func (app *App) setupRoutes() *mux.Router {
-	router := mux.NewRouter().StrictSlash(true)
+func (app *App) setupRoutes() *gin.Engine {
+	r := gin.Default()
 
-	var staticFS = http.FS(staticFiles)
-	fs := http.FileServer(staticFS)
+	r.Any("/", app.rootRouteHandler)
+	r.GET("/static/*filepath", func(c *gin.Context) {
+		c.FileFromFS(path.Join("/", c.Request.URL.Path), http.FS(staticFS))
+	})
 
-	router.PathPrefix("/static/").Handler(fs)
+	apiRouter := r.Group("/api/bookmarks")
+	{
+		apiRouter.GET("", app.bookmarkController.GetAll)
+		apiRouter.GET("/:id", app.bookmarkController.GetById)
+		apiRouter.POST("", app.bookmarkController.Create)
+		apiRouter.PUT("/:id", app.bookmarkController.Update)
+		apiRouter.DELETE("/:id", app.bookmarkController.Delete)
+	}
 
-	router.HandleFunc("/", app.rootRouteHandler)
-	apiRouter := router.PathPrefix("/api").Subrouter()
-	app.setupBookmarkApiRoutes(apiRouter, app.bookmarkController)
-	return router
+	return r
 }
 
-func (app *App) rootRouteHandler(w http.ResponseWriter, r *http.Request) {
+func (app *App) rootRouteHandler(c *gin.Context) {
 	tmpl, err := template.ParseFS(assetData, "templates/index.html")
 	if err != nil {
 		log.Fatalf("error loading static assets: %v", err)
 	}
-	tmpl.Execute(w, nil)
-}
-
-func (app *App) setupBookmarkApiRoutes(router *mux.Router, controller *bookmarks.BookmarkController) {
-	r := router.PathPrefix("/bookmarks").Subrouter()
-	r.HandleFunc("", controller.GetAll).Methods(http.MethodGet)
-	r.HandleFunc("/{id:[0-9]+}", controller.GetById).Methods(http.MethodGet)
-	r.HandleFunc("", controller.Create).Methods(http.MethodPost)
-	r.HandleFunc("/{id:[0-9]+}", controller.Update).Methods(http.MethodPut)
-	r.HandleFunc("/{id:[0-9]+}", controller.Delete).Methods(http.MethodDelete)
+	tmpl.Execute(c.Writer, nil)
 }
 
 func (app *App) initLogging() {

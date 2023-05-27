@@ -11,12 +11,11 @@ type BookmarkRepository struct {
 	db *pgx.Conn
 }
 
-func NewBookmarkRepo(db *pgx.Conn) *BookmarkRepository {
-	return &BookmarkRepository{db}
+func NewBookmarkRepo(db *pgx.Conn) BookmarkRepository {
+	return BookmarkRepository{db}
 }
 
-func (b BookmarkRepository) GetBookmarks() ([]Bookmark, error) {
-	ctx := context.Background()
+func (b BookmarkRepository) GetBookmarks(ctx context.Context) ([]Bookmark, error) {
 	query := "SELECT id, title, url, created_at FROM bookmarks"
 	rows, err := b.db.Query(ctx, query)
 	if err != nil {
@@ -35,9 +34,8 @@ func (b BookmarkRepository) GetBookmarks() ([]Bookmark, error) {
 	return bookmarks, nil
 }
 
-func (b BookmarkRepository) GetBookmarkById(bookmarkId int) (Bookmark, error) {
+func (b BookmarkRepository) GetBookmarkById(ctx context.Context, bookmarkId int) (Bookmark, error) {
 	log.Infof("Fetching bookmark with id=%d", bookmarkId)
-	ctx := context.Background()
 	var bookmark = Bookmark{}
 	query := "select id, title, url, created_at, updated_at FROM bookmarks where id=$1"
 	err := b.db.QueryRow(ctx, query, bookmarkId).Scan(
@@ -48,8 +46,7 @@ func (b BookmarkRepository) GetBookmarkById(bookmarkId int) (Bookmark, error) {
 	return bookmark, nil
 }
 
-func (b BookmarkRepository) CreateBookmark(bookmark Bookmark) (Bookmark, error) {
-	ctx := context.Background()
+func (b BookmarkRepository) CreateBookmark(ctx context.Context, bookmark Bookmark) (Bookmark, error) {
 	var lastInsertID int
 	insertQuery := "insert into bookmarks(title, url, created_at) values($1, $2, $3) RETURNING id"
 	err := b.db.QueryRow(ctx, insertQuery, bookmark.Title, bookmark.Url, bookmark.CreatedDate).Scan(&lastInsertID)
@@ -61,8 +58,7 @@ func (b BookmarkRepository) CreateBookmark(bookmark Bookmark) (Bookmark, error) 
 	return bookmark, nil
 }
 
-func (b BookmarkRepository) UpdateBookmark(bookmark Bookmark) (Bookmark, error) {
-	ctx := context.Background()
+func (b BookmarkRepository) UpdateBookmark(ctx context.Context, bookmark Bookmark) (Bookmark, error) {
 	updateQuery := "update bookmarks set title = $1, url=$2, updated_at=$3 where id=$4"
 	_, err := b.db.Exec(ctx, updateQuery, bookmark.Title, bookmark.Url, bookmark.UpdatedDate, bookmark.Id)
 	if err != nil {
@@ -71,8 +67,7 @@ func (b BookmarkRepository) UpdateBookmark(bookmark Bookmark) (Bookmark, error) 
 	return bookmark, nil
 }
 
-func (b BookmarkRepository) DeleteBookmark(bookmarkId int) error {
-	ctx := context.Background()
+func (b BookmarkRepository) DeleteBookmark(ctx context.Context, bookmarkId int) error {
 	deleteStmt := `delete from bookmarks where id=$1`
 	_, err := b.db.Exec(ctx, deleteStmt, bookmarkId)
 	return err

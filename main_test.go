@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/sivaprasadreddy/bookmarks-go/config"
 	"github.com/stretchr/testify/assert"
@@ -76,7 +76,7 @@ func overrideEnv(pgC *PostgresContainer) {
 
 var cfg config.AppConfig
 var app *App
-var router *mux.Router
+var router *gin.Engine
 
 func TestMain(m *testing.M) {
 	//Common Setup
