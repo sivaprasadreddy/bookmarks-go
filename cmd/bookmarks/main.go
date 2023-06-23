@@ -2,16 +2,16 @@ package main
 
 import (
 	"fmt"
+	bookmarks "github.com/sivaprasadreddy/bookmarks-go/internal"
 	"net/http"
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/sivaprasadreddy/bookmarks-go/config"
 )
 
 func main() {
-	cfg := config.GetConfig()
-	app := NewApp(cfg)
+	cfg := bookmarks.GetConfig(".env")
+	app := bookmarks.NewApp(cfg)
 
 	port := fmt.Sprintf(":%d", cfg.AppPort)
 	srv := &http.Server{

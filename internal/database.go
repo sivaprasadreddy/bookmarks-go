@@ -1,4 +1,4 @@
-package database
+package bookmarks
 
 import (
 	"context"
@@ -9,10 +9,9 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5"
 	log "github.com/sirupsen/logrus"
-	"github.com/sivaprasadreddy/bookmarks-go/config"
 )
 
-func GetDb(config config.AppConfig) *pgx.Conn {
+func GetDb(config AppConfig) *pgx.Conn {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		config.DbHost, config.DbPort, config.DbUserName, config.DbPassword, config.DbDatabase)
 	conn, err := pgx.Connect(context.Background(), connStr)
@@ -25,12 +24,12 @@ func GetDb(config config.AppConfig) *pgx.Conn {
 	return conn
 }
 
-func runMigrations(config config.AppConfig) {
+func runMigrations(config AppConfig) {
 	sourceURL := config.DbMigrationsLocation
 	databaseURL := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
 		config.DbUserName, config.DbPassword, config.DbHost, config.DbPort, config.DbDatabase)
-	//log.Printf("DB Migration sourceURL: %s\n", sourceURL)
-	//log.Printf("DB Migration URL: %s\n", databaseURL)
+	log.Printf("DB Migration sourceURL: %s\n", sourceURL)
+	log.Printf("DB Migration URL: %s\n", databaseURL)
 	m, err := migrate.New(sourceURL, databaseURL)
 	if err != nil {
 		log.Fatalf("Database migration error: %v", err)

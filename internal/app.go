@@ -1,7 +1,7 @@
-package main
+package bookmarks
 
 import (
-	"embed"
+	"github.com/sivaprasadreddy/bookmarks-go/assets"
 	"html/template"
 	"net/http"
 	"os"
@@ -10,48 +10,39 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	log "github.com/sirupsen/logrus"
-	"github.com/sivaprasadreddy/bookmarks-go/bookmarks"
-	"github.com/sivaprasadreddy/bookmarks-go/config"
-	"github.com/sivaprasadreddy/bookmarks-go/database"
 )
 
 type App struct {
 	Router             *gin.Engine
 	db                 *pgx.Conn
-	bookmarkController *bookmarks.BookmarkController
+	bookmarkController *BookmarkController
 }
 
-func NewApp(config config.AppConfig) *App {
+func NewApp(config AppConfig) *App {
 	app := &App{}
 	app.init(config)
 	return app
 }
 
-func (app *App) init(config config.AppConfig) {
+func (app *App) init(config AppConfig) {
 	//logFile := initLogging()
 	//defer logFile.Close()
 	app.initLogging()
 
-	app.db = database.GetDb(config)
+	app.db = GetDb(config)
 
-	bookmarksRepo := bookmarks.NewBookmarkRepo(app.db)
-	app.bookmarkController = bookmarks.NewBookmarkController(bookmarksRepo)
+	bookmarksRepo := NewBookmarkRepo(app.db)
+	app.bookmarkController = NewBookmarkController(bookmarksRepo)
 
 	app.Router = app.setupRoutes()
 }
-
-//go:embed templates/*
-var assetData embed.FS
-
-//go:embed static
-var staticFS embed.FS
 
 func (app *App) setupRoutes() *gin.Engine {
 	r := gin.Default()
 
 	r.Any("/", app.rootRouteHandler)
 	r.GET("/static/*filepath", func(c *gin.Context) {
-		c.FileFromFS(path.Join("/", c.Request.URL.Path), http.FS(staticFS))
+		c.FileFromFS(path.Join("/", c.Request.URL.Path), http.FS(assets.StaticFS))
 	})
 
 	apiRouter := r.Group("/api/bookmarks")
@@ -67,7 +58,7 @@ func (app *App) setupRoutes() *gin.Engine {
 }
 
 func (app *App) rootRouteHandler(c *gin.Context) {
-	tmpl, err := template.ParseFS(assetData, "templates/index.html")
+	tmpl, err := template.ParseFS(assets.Templates, "templates/index.html")
 	if err != nil {
 		log.Fatalf("error loading static assets: %v", err)
 	}

@@ -1,4 +1,4 @@
-package config
+package bookmarks
 
 import (
 	"errors"
@@ -21,13 +21,14 @@ type AppConfig struct {
 	DbMigrationsLocation string
 }
 
-func GetConfig() AppConfig {
-	if _, err := os.Stat(".env"); errors.Is(err, fs.ErrNotExist) {
-		log.Infof(".env file doesn't exist")
+func GetConfig(envFilePath string) AppConfig {
+	log.Infof("envFilePath: %s", envFilePath)
+	if _, err := os.Stat(envFilePath); errors.Is(err, fs.ErrNotExist) {
+		log.Infof("%s file doesn't exist", envFilePath)
 	} else {
-		err := godotenv.Load(".env")
+		err := godotenv.Load(envFilePath)
 		if err != nil {
-			log.Warningf("Couldn't load environment variables from .env file")
+			log.Warningf("Couldn't load environment variables from .env file: %s", envFilePath)
 		}
 	}
 	port := os.Getenv("APP_PORT")
