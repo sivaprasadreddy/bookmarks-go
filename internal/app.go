@@ -2,6 +2,10 @@ package bookmarks
 
 import (
 	"github.com/sivaprasadreddy/bookmarks-go/assets"
+	"github.com/sivaprasadreddy/bookmarks-go/internal/api"
+	"github.com/sivaprasadreddy/bookmarks-go/internal/config"
+	"github.com/sivaprasadreddy/bookmarks-go/internal/db"
+	"github.com/sivaprasadreddy/bookmarks-go/internal/domain"
 	"html/template"
 	"net/http"
 	"os"
@@ -15,24 +19,24 @@ import (
 type App struct {
 	Router             *gin.Engine
 	db                 *pgx.Conn
-	bookmarkController *BookmarkController
+	bookmarkController *api.BookmarkController
 }
 
-func NewApp(config AppConfig) *App {
+func NewApp(config config.AppConfig) *App {
 	app := &App{}
 	app.init(config)
 	return app
 }
 
-func (app *App) init(config AppConfig) {
+func (app *App) init(config config.AppConfig) {
 	//logFile := initLogging()
 	//defer logFile.Close()
 	app.initLogging()
 
-	app.db = GetDb(config)
+	app.db = db.GetDb(config)
 
-	bookmarksRepo := NewBookmarkRepo(app.db)
-	app.bookmarkController = NewBookmarkController(bookmarksRepo)
+	bookmarksRepo := domain.NewBookmarkRepo(app.db)
+	app.bookmarkController = api.NewBookmarkController(bookmarksRepo)
 
 	app.Router = app.setupRoutes()
 }

@@ -2,6 +2,7 @@ package bookmarks
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/sivaprasadreddy/bookmarks-go/internal/config"
 	"github.com/sivaprasadreddy/bookmarks-go/testsupport"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -13,14 +14,14 @@ import (
 type ControllerTestSuite struct {
 	suite.Suite
 	PgContainer *testsupport.PostgresContainer
-	cfg         AppConfig
+	cfg         config.AppConfig
 	app         *App
 	router      *gin.Engine
 }
 
 func (suite *ControllerTestSuite) SetupSuite() {
 	suite.PgContainer = testsupport.InitPostgresContainer()
-	suite.cfg = GetConfig(".env")
+	suite.cfg = config.GetConfig(".env")
 	suite.app = NewApp(suite.cfg)
 	suite.router = suite.app.Router
 }

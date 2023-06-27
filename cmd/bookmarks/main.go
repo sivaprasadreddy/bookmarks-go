@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	bookmarks "github.com/sivaprasadreddy/bookmarks-go/internal"
+	"github.com/sivaprasadreddy/bookmarks-go/internal/config"
 	"net/http"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 )
 
 func main() {
-	cfg := bookmarks.GetConfig(".env")
+	cfg := config.GetConfig(".env")
 	app := bookmarks.NewApp(cfg)
 
 	port := fmt.Sprintf(":%d", cfg.AppPort)

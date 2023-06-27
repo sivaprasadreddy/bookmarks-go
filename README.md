@@ -22,3 +22,11 @@ $ go test -v ./...
 $ GIN_MODE=release go test -v -coverprofile=coverage.out ./...
 $ go tool cover -html=coverage.out
 ```
+
+## Build the application
+
+```shell
+$ go build -o ./dist/bookmarks cmd/bookmarks/main.go
+$ ./dist/bookmarks
+$ open http://localhost:8080
+```

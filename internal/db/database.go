@@ -1,8 +1,9 @@
-package bookmarks
+package db
 
 import (
 	"context"
 	"fmt"
+	"github.com/sivaprasadreddy/bookmarks-go/internal/config"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -11,7 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func GetDb(config AppConfig) *pgx.Conn {
+func GetDb(config config.AppConfig) *pgx.Conn {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		config.DbHost, config.DbPort, config.DbUserName, config.DbPassword, config.DbDatabase)
 	conn, err := pgx.Connect(context.Background(), connStr)
@@ -24,7 +25,7 @@ func GetDb(config AppConfig) *pgx.Conn {
 	return conn
 }
 
-func runMigrations(config AppConfig) {
+func runMigrations(config config.AppConfig) {
 	sourceURL := config.DbMigrationsLocation
 	databaseURL := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
 		config.DbUserName, config.DbPassword, config.DbHost, config.DbPort, config.DbDatabase)
