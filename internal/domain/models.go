@@ -5,11 +5,11 @@ import (
 )
 
 type Bookmark struct {
-	Id          int       `json:"id"`
-	Title       string    `json:"title"`
-	Url         string    `json:"url"`
-	CreatedDate time.Time `json:"created_date"`
-	UpdatedDate time.Time `json:"updated_date"`
+	Id          int        `json:"id"`
+	Title       string     `json:"title"`
+	Url         string     `json:"url"`
+	CreatedDate time.Time  `json:"created_date"`
+	UpdatedDate *time.Time `json:"updated_date"`
 }
 
 type CreateBookmarkModel struct {
@@ -18,7 +18,6 @@ type CreateBookmarkModel struct {
 }
 
 type UpdateBookmarkModel struct {
-	Id    int    `json:"id"`
 	Title string `json:"title" binding:"required"`
 	Url   string `json:"url" binding:"required,url"`
 }

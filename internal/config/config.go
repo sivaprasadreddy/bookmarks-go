@@ -1,58 +1,43 @@
 package config
 
 import (
-	"errors"
-	"io/fs"
-	"os"
-	"strconv"
-
-	"github.com/joho/godotenv"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 type AppConfig struct {
-	AppPort              int
-	DbHost               string
-	DbPort               int
-	DbUserName           string
-	DbPassword           string
-	DbDatabase           string
-	DbRunMigrations      bool
-	DbMigrationsLocation string
+	ServerPort           int    `mapstructure:"SERVER_PORT"`
+	DbHost               string `mapstructure:"DB_HOST"`
+	DbPort               int    `mapstructure:"DB_PORT"`
+	DbUserName           string `mapstructure:"DB_USERNAME"`
+	DbPassword           string `mapstructure:"DB_PASSWORD"`
+	DbDatabase           string `mapstructure:"DB_NAME"`
+	DbRunMigrations      bool   `mapstructure:"DB_RUN_MIGRATIONS"`
+	DbMigrationsLocation string `mapstructure:"DB_MIGRATIONS_LOCATION"`
 }
 
-func GetConfig(envFilePath string) AppConfig {
-	log.Infof("envFilePath: %s", envFilePath)
-	if _, err := os.Stat(envFilePath); errors.Is(err, fs.ErrNotExist) {
-		log.Infof("%s file doesn't exist", envFilePath)
-	} else {
-		err := godotenv.Load(envFilePath)
-		if err != nil {
-			log.Warningf("Couldn't load environment variables from .env file: %s", envFilePath)
-		}
-	}
-	port := os.Getenv("APP_PORT")
-	if port == "" {
-		port = "8080"
-		log.Printf("defaulting to port %s", port)
-	}
+func GetConfig(configFilePath string) (AppConfig, error) {
+	log.Infof("Config File Path: %s", configFilePath)
 
-	AppPort, _ := strconv.Atoi(port)
-	DbHost := os.Getenv("APP_DB_HOST")
-	DbPort, _ := strconv.Atoi(os.Getenv("APP_DB_PORT"))
-	DbUserName := os.Getenv("APP_DB_USERNAME")
-	DbPassword := os.Getenv("APP_DB_PASSWORD")
-	DbDatabase := os.Getenv("APP_DB_NAME")
-	DbRunMigrations, _ := strconv.ParseBool(os.Getenv("APP_DB_RUN_MIGRATIONS"))
-	DbMigrationsLocation := os.Getenv("APP_DB_MIGRATIONS_LOCATION")
-	return AppConfig{
-		AppPort:              AppPort,
-		DbHost:               DbHost,
-		DbPort:               DbPort,
-		DbUserName:           DbUserName,
-		DbPassword:           DbPassword,
-		DbDatabase:           DbDatabase,
-		DbRunMigrations:      DbRunMigrations,
-		DbMigrationsLocation: DbMigrationsLocation,
+	conf := viper.New()
+	conf.SetConfigFile(configFilePath)
+	//conf.SetEnvPrefix("APP")
+	//replacer := strings.NewReplacer(".", "_")
+	//conf.SetEnvKeyReplacer(replacer)
+	conf.AutomaticEnv()
+
+	err := conf.ReadInConfig()
+	if err != nil {
+		log.Errorf("fatal error config file: %v", err)
+		return AppConfig{}, err
 	}
+	var cfg AppConfig
+
+	err = conf.Unmarshal(&cfg)
+	if err != nil {
+		log.Errorf("configuration unmarshalling failed!. Error: %v", err)
+		return cfg, err
+	}
+	//fmt.Printf("%#v\n", cfg)
+	return cfg, nil
 }

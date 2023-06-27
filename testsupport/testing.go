@@ -31,10 +31,16 @@ func InitPostgresContainer() *PostgresContainer {
 }
 
 func overrideEnv(pgC *PostgresContainer) {
-	os.Setenv("APP_DB_HOST", pgC.Host)
-	os.Setenv("APP_DB_PORT", fmt.Sprint(pgC.Port))
-	os.Setenv("APP_DB_USERNAME", pgC.Username)
-	os.Setenv("APP_DB_PASSWORD", pgC.Password)
-	os.Setenv("APP_DB_NAME", pgC.Database)
-	os.Setenv("APP_DB_RUN_MIGRATIONS", "true")
+	panicIfError(os.Setenv("DB_HOST", pgC.Host))
+	panicIfError(os.Setenv("DB_PORT", fmt.Sprint(pgC.Port)))
+	panicIfError(os.Setenv("DB_USERNAME", pgC.Username))
+	panicIfError(os.Setenv("DB_PASSWORD", pgC.Password))
+	panicIfError(os.Setenv("DB_NAME", pgC.Database))
+	panicIfError(os.Setenv("DB_RUN_MIGRATIONS", "true"))
+}
+
+func panicIfError(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

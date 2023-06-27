@@ -11,17 +11,17 @@ import (
 )
 
 type BookmarkController struct {
-	repository domain.BookmarkRepository
+	repo domain.BookmarkRepository
 }
 
 func NewBookmarkController(repository domain.BookmarkRepository) *BookmarkController {
 	return &BookmarkController{repository}
 }
 
-func (b BookmarkController) GetAll(c *gin.Context) {
+func (b BookmarkController) FindAll(c *gin.Context) {
 	log.Info("Fetching all bookmarks")
 	ctx := c.Request.Context()
-	bookmarks, err := b.repository.GetAll(ctx)
+	bookmarks, err := b.repo.FindAll(ctx)
 	if err != nil {
 		log.Errorf("Error while fetching bookmarks")
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -35,13 +35,20 @@ func (b BookmarkController) GetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, bookmarks)
 }
 
-func (b BookmarkController) GetById(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+func (b BookmarkController) FindById(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		log.Errorf("Error while parsing bookmarkId: %v", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid bookmark id",
+		})
+		return
+	}
 	log.Infof("Fetching bookmark by id %d", id)
 	ctx := c.Request.Context()
-	bookmark, err := b.repository.GetById(ctx, id)
+	bookmark, err := b.repo.FindById(ctx, id)
 	if err != nil {
-		log.Errorf("Error while fetching bookmark by id")
+		log.Errorf("Error while fetching bookmark by id: %v", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error": "Unable to fetch bookmark by id",
 		})
@@ -53,19 +60,19 @@ func (b BookmarkController) GetById(c *gin.Context) {
 func (b BookmarkController) Create(c *gin.Context) {
 	log.Info("create bookmark")
 	ctx := c.Request.Context()
-	var createBookmark domain.CreateBookmarkModel
-	if err := c.ShouldBindJSON(&createBookmark); err != nil {
+	var cb domain.CreateBookmarkModel
+	if err := c.ShouldBindJSON(&cb); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "Unable to parse request body. Error: " + err.Error(),
 		})
 		return
 	}
 	bookmark := domain.Bookmark{
-		Title:       createBookmark.Title,
-		Url:         createBookmark.Url,
-		CreatedDate: time.Time{},
+		Title:       cb.Title,
+		Url:         cb.Url,
+		CreatedDate: time.Now(),
 	}
-	bookmark, err := b.repository.Create(ctx, bookmark)
+	bookmark, err := b.repo.Create(ctx, bookmark)
 	if err != nil {
 		log.Errorf("Error while create bookmark %v", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -77,41 +84,56 @@ func (b BookmarkController) Create(c *gin.Context) {
 }
 
 func (b BookmarkController) Update(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		log.Errorf("Error while parsing bookmarkId: %v", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid bookmark id",
+		})
+		return
+	}
 	log.Infof("update bookmark id=%d", id)
 	ctx := c.Request.Context()
-	var updateBookmarkModel domain.UpdateBookmarkModel
-	if err := c.ShouldBindJSON(&updateBookmarkModel); err != nil {
+	var ub domain.UpdateBookmarkModel
+	if err := c.ShouldBindJSON(&ub); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "Unable to parse request body. Error: " + err.Error(),
 		})
 		return
 	}
+	now := time.Now()
 	bookmark := domain.Bookmark{
 		Id:          id,
-		Title:       updateBookmarkModel.Title,
-		Url:         updateBookmarkModel.Url,
-		UpdatedDate: time.Now(),
+		Title:       ub.Title,
+		Url:         ub.Url,
+		UpdatedDate: &now,
 	}
-	bookmark, err := b.repository.Update(ctx, bookmark)
+	bookmark, err = b.repo.Update(ctx, bookmark)
 	if err != nil {
-		log.Errorf("Error while update bookmark")
+		log.Errorf("Error while update bookmark: %v", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "Unable to update bookmark",
 		})
 		return
 	}
-	bookmark, _ = b.repository.GetById(c.Request.Context(), id)
+	bookmark, _ = b.repo.FindById(c.Request.Context(), id)
 	c.JSON(http.StatusOK, bookmark)
 }
 
 func (b BookmarkController) Delete(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		log.Errorf("Error while parsing bookmarkId: %v", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid bookmark id",
+		})
+		return
+	}
 	log.Infof("delete bookmark with id=%d", id)
 	ctx := c.Request.Context()
-	err := b.repository.Delete(ctx, id)
+	err = b.repo.Delete(ctx, id)
 	if err != nil {
-		log.Errorf("Error while deleting bookmark")
+		log.Errorf("Error while deleting bookmark: %v", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error": "Unable to delete bookmark",
 		})

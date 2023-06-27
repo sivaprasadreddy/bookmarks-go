@@ -11,10 +11,13 @@ import (
 )
 
 func main() {
-	cfg := config.GetConfig(".env")
+	cfg, err := config.GetConfig(".env")
+	if err != nil {
+		log.Fatal(err)
+	}
 	app := bookmarks.NewApp(cfg)
 
-	port := fmt.Sprintf(":%d", cfg.AppPort)
+	port := fmt.Sprintf(":%d", cfg.ServerPort)
 	srv := &http.Server{
 		Handler:        app.Router,
 		Addr:           port,
@@ -23,7 +26,7 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	log.Printf("listening on port %d", cfg.AppPort)
+	log.Printf("listening on port %d", cfg.ServerPort)
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
