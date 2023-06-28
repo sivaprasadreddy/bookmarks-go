@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"fmt"
+
 	"github.com/sivaprasadreddy/bookmarks-go/internal/config"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/logging"
 

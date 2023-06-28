@@ -1,11 +1,12 @@
 package api
 
 import (
-	"github.com/sivaprasadreddy/bookmarks-go/internal/domain"
-	"github.com/sivaprasadreddy/bookmarks-go/internal/logging"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/sivaprasadreddy/bookmarks-go/internal/domain"
+	"github.com/sivaprasadreddy/bookmarks-go/internal/logging"
 
 	"github.com/gin-gonic/gin"
 )

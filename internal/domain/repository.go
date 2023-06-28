@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+
 	"github.com/sivaprasadreddy/bookmarks-go/internal/logging"
 
 	"github.com/jackc/pgx/v5"

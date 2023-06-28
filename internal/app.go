@@ -2,6 +2,11 @@ package bookmarks
 
 import (
 	"fmt"
+	"html/template"
+	"net/http"
+	"path"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/sivaprasadreddy/bookmarks-go/assets"
@@ -10,10 +15,6 @@ import (
 	"github.com/sivaprasadreddy/bookmarks-go/internal/db"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/domain"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/logging"
-	"html/template"
-	"net/http"
-	"path"
-	"time"
 )
 
 type App struct {

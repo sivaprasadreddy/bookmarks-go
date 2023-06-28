@@ -2,9 +2,10 @@ package main
 
 import (
 	"flag"
+	"log"
+
 	bookmarks "github.com/sivaprasadreddy/bookmarks-go/internal"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/config"
-	"log"
 )
 
 func main() {

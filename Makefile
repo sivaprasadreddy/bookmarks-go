@@ -27,7 +27,7 @@ build: ## show this help
 	GOARCH=${GOARCH} GOOS=windows go build -o ${DIST_DIR}/${BINARY_NAME}-windows-${GOARCH}.exe ${MAIN_SRC_DIR}
 
 fmt:    ## format the go source files
-	go fmt ./...
+	goimports -w .
 
 lint: # https://staticcheck.io/
 	staticcheck ./...

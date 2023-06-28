@@ -1,11 +1,12 @@
 package logging
 
 import (
+	"os"
+
 	"github.com/sivaprasadreddy/bookmarks-go/internal/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"os"
 )
 
 type Logger struct {
@@ -32,27 +33,26 @@ func initZap(cfg config.AppConfig) *Logger {
 		encoder,
 		zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(&hook)),
 		logLevel)
-	if cfg.Environment != "prod" {
-		return &Logger{zap.New(
-			core, zap.Development(),
-			zap.AddCaller(),
-			zap.AddStacktrace(zap.ErrorLevel),
-		).Sugar()}
-	}
-	return &Logger{zap.New(
-		core,
+	options := []zap.Option{
 		zap.AddCaller(),
 		zap.AddStacktrace(zap.ErrorLevel),
-	).Sugar()}
+	}
+	if cfg.Environment != "prod" {
+		options = append(options, zap.Development())
+	}
+	sugaredLogger := zap.New(core, options...).With(
+		zap.String("env", cfg.Environment),
+	).Sugar()
+	return &Logger{sugaredLogger}
 }
 
 func getEncoder() zapcore.Encoder {
 	return zapcore.NewJSONEncoder(zapcore.EncoderConfig{
-		TimeKey:   "ts",
-		LevelKey:  "level",
-		NameKey:   "logger",
-		CallerKey: "caller",
-		//FunctionKey:    zapcore.OmitKey,
+		TimeKey:        "ts",
+		LevelKey:       "level",
+		NameKey:        "logger",
+		CallerKey:      "caller",
+		FunctionKey:    zapcore.OmitKey,
 		MessageKey:     "msg",
 		StacktraceKey:  "stacktrace",
 		LineEnding:     zapcore.DefaultLineEnding,
