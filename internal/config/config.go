@@ -21,6 +21,8 @@ type AppConfig struct {
 func GetConfig(configFilePath string) (AppConfig, error) {
 	log.Printf("Config File Path: %s\n", configFilePath)
 
+	//fmt.Println("env vars:", os.Environ())
+
 	conf := viper.New()
 	conf.SetConfigFile(configFilePath)
 	//conf.SetEnvPrefix("APP")
@@ -30,8 +32,7 @@ func GetConfig(configFilePath string) (AppConfig, error) {
 
 	err := conf.ReadInConfig()
 	if err != nil {
-		log.Printf("fatal error config file: %v\n", err)
-		return AppConfig{}, err
+		log.Printf("error reading config file: %v\n", err)
 	}
 	var cfg AppConfig
 

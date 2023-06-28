@@ -16,6 +16,12 @@ $ docker-compose up -d bookmarks-db
 $ air
 ```
 
+## Run application using docker-compose
+
+```shell
+$ docker-compose up --build -d
+```
+
 ## Run tests
 
 ```shell

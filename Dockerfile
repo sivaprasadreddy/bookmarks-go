@@ -7,9 +7,9 @@ COPY go.* ./
 RUN go mod download
 # Copy local code to the container image.
 COPY . ./
+COPY .env ./
 # Build the Go app
 RUN GO111MODULE=on GOOS=linux CGO_ENABLED=0 go build -v -o server ./cmd/bookmarks
-
 
 ######## Start a new stage from scratch #######
 FROM gcr.io/distroless/base-debian10
@@ -17,6 +17,7 @@ WORKDIR /
 
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/server ./server
+COPY --from=builder /app/.env ./.env
 COPY --from=builder /app/migrations ./migrations
 
 # Run the templates service on container startup.

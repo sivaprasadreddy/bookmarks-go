@@ -25,15 +25,15 @@ type App struct {
 	bookmarkController *api.BookmarkController
 }
 
-func NewApp(config config.AppConfig) *App {
-	app := &App{}
-	app.init(config)
+func NewApp(cfg config.AppConfig) *App {
+	app := &App{cfg: cfg}
+	app.init()
 	return app
 }
 
-func (app *App) init(config config.AppConfig) {
-	app.logger = logging.NewLogger(config)
-	app.db = db.GetDb(config, app.logger)
+func (app *App) init() {
+	app.logger = logging.NewLogger(app.cfg)
+	app.db = db.GetDb(app.cfg, app.logger)
 
 	bookmarksRepo := domain.NewBookmarkRepo(app.db, app.logger)
 	app.bookmarkController = api.NewBookmarkController(bookmarksRepo, app.logger)
