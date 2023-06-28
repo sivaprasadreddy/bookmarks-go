@@ -1,10 +1,13 @@
 package bookmarks
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"net/http"
+	"os/signal"
 	"path"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -73,6 +76,10 @@ func (app *App) rootRouteHandler(c *gin.Context) {
 }
 
 func (app *App) Run() {
+	// Create a context that listens for the interrupt signal from the OS.
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
 	port := fmt.Sprintf(":%d", app.cfg.ServerPort)
 	srv := &http.Server{
 		Handler:        app.Router,
@@ -82,8 +89,27 @@ func (app *App) Run() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	app.logger.Infof("listening on port %d", app.cfg.ServerPort)
-	if err := srv.ListenAndServe(); err != nil {
-		app.logger.Fatal(err)
+	// Initializing the server in a goroutine so that
+	// it won't block the graceful shutdown handling below
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			app.logger.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	// Listen for the interrupt signal.
+	<-ctx.Done()
+
+	// Restore default behavior on the interrupt signal and notify user of shutdown.
+	stop()
+	app.logger.Infoln("shutting down gracefully, press Ctrl+C again to force")
+
+	// The context is used to inform the server it has 5 seconds to finish
+	// the request it is currently handling
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		app.logger.Fatal("Server forced to shutdown: ", err)
 	}
+	app.logger.Infoln("Server exiting")
 }
