@@ -2,12 +2,12 @@ package bookmarks
 
 import (
 	"encoding/json"
-	log "github.com/sirupsen/logrus"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/config"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/domain"
 	"github.com/sivaprasadreddy/bookmarks-go/testsupport"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"

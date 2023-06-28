@@ -3,11 +3,10 @@ package testsupport
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"runtime"
-
-	log "github.com/sirupsen/logrus"
 )
 
 func init() {

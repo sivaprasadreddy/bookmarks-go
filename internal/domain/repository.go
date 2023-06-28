@@ -2,9 +2,9 @@ package domain
 
 import (
 	"context"
+	"github.com/sivaprasadreddy/bookmarks-go/internal/logging"
 
 	"github.com/jackc/pgx/v5"
-	log "github.com/sirupsen/logrus"
 )
 
 type BookmarkRepository interface {
@@ -16,11 +16,12 @@ type BookmarkRepository interface {
 }
 
 type bookmarkRepo struct {
-	db *pgx.Conn
+	db     *pgx.Conn
+	logger *logging.Logger
 }
 
-func NewBookmarkRepo(db *pgx.Conn) BookmarkRepository {
-	return &bookmarkRepo{db}
+func NewBookmarkRepo(db *pgx.Conn, logger *logging.Logger) BookmarkRepository {
+	return &bookmarkRepo{db: db, logger: logger}
 }
 
 func (repo *bookmarkRepo) FindAll(ctx context.Context) ([]Bookmark, error) {
@@ -43,7 +44,7 @@ func (repo *bookmarkRepo) FindAll(ctx context.Context) ([]Bookmark, error) {
 }
 
 func (repo *bookmarkRepo) FindById(ctx context.Context, id int) (Bookmark, error) {
-	log.Infof("Fetching bookmark with id=%d", id)
+	repo.logger.Infof("Fetching bookmark with id=%d", id)
 	var b = Bookmark{}
 	sql := "select id, title, url, created_at, updated_at FROM bookmarks where id=$1"
 	err := repo.db.QueryRow(ctx, sql, id).Scan(
@@ -60,7 +61,7 @@ func (repo *bookmarkRepo) Create(ctx context.Context, b Bookmark) (Bookmark, err
 	err := repo.db.QueryRow(ctx, sql, b.Title, b.Url, b.CreatedDate, b.UpdatedDate).
 		Scan(&lastInsertID)
 	if err != nil {
-		log.Errorf("Error while inserting bookmark row: %v", err)
+		repo.logger.Errorf("Error while inserting bookmark row: %v", err)
 		return Bookmark{}, err
 	}
 	b.Id = lastInsertID

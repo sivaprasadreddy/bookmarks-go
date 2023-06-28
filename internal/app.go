@@ -1,23 +1,25 @@
 package bookmarks
 
 import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"github.com/sivaprasadreddy/bookmarks-go/assets"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/api"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/config"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/db"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/domain"
+	"github.com/sivaprasadreddy/bookmarks-go/internal/logging"
 	"html/template"
 	"net/http"
-	"os"
 	"path"
-
-	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
-	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 type App struct {
 	Router             *gin.Engine
+	cfg                config.AppConfig
+	logger             *logging.Logger
 	db                 *pgx.Conn
 	bookmarkController *api.BookmarkController
 }
@@ -29,14 +31,11 @@ func NewApp(config config.AppConfig) *App {
 }
 
 func (app *App) init(config config.AppConfig) {
-	//logFile := initLogging()
-	//defer logFile.Close()
-	app.initLogging()
+	app.logger = logging.NewLogger(config)
+	app.db = db.GetDb(config, app.logger)
 
-	app.db = db.GetDb(config)
-
-	bookmarksRepo := domain.NewBookmarkRepo(app.db)
-	app.bookmarkController = api.NewBookmarkController(bookmarksRepo)
+	bookmarksRepo := domain.NewBookmarkRepo(app.db, app.logger)
+	app.bookmarkController = api.NewBookmarkController(bookmarksRepo, app.logger)
 
 	app.Router = app.setupRoutes()
 }
@@ -64,24 +63,26 @@ func (app *App) setupRoutes() *gin.Engine {
 func (app *App) rootRouteHandler(c *gin.Context) {
 	tmpl, err := template.ParseFS(assets.Templates, "templates/index.html")
 	if err != nil {
-		log.Fatalf("error loading static assets: %v", err)
+		app.logger.Fatalf("error loading static assets: %v", err)
 	}
-	tmpl.Execute(c.Writer, nil)
-}
-
-func (app *App) initLogging() {
-	log.SetOutput(os.Stdout)
-	log.SetFormatter(&log.TextFormatter{})
-	log.SetLevel(log.InfoLevel)
-}
-
-func (app *App) initFileLogging() *os.File {
-	logFile, err := os.OpenFile("bookmarks.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	err = tmpl.Execute(c.Writer, nil)
 	if err != nil {
-		log.Fatalf("error opening log file: %v", err)
+		app.logger.Fatalf("error rendering index.html: %v", err)
 	}
-	log.SetOutput(logFile)
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetLevel(log.InfoLevel)
-	return logFile
+}
+
+func (app *App) Run() {
+	port := fmt.Sprintf(":%d", app.cfg.ServerPort)
+	srv := &http.Server{
+		Handler:        app.Router,
+		Addr:           port,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	app.logger.Infof("listening on port %d", app.cfg.ServerPort)
+	if err := srv.ListenAndServe(); err != nil {
+		app.logger.Fatal(err)
+	}
 }

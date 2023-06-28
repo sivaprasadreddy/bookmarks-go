@@ -2,9 +2,9 @@ package testsupport
 
 import (
 	"context"
+	"log"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"

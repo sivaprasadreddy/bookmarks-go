@@ -1,11 +1,12 @@
 package config
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"log"
 )
 
 type AppConfig struct {
+	Environment          string `mapstructure:"ENVIRONMENT"`
 	ServerPort           int    `mapstructure:"SERVER_PORT"`
 	DbHost               string `mapstructure:"DB_HOST"`
 	DbPort               int    `mapstructure:"DB_PORT"`
@@ -17,7 +18,7 @@ type AppConfig struct {
 }
 
 func GetConfig(configFilePath string) (AppConfig, error) {
-	log.Infof("Config File Path: %s", configFilePath)
+	log.Printf("Config File Path: %s\n", configFilePath)
 
 	conf := viper.New()
 	conf.SetConfigFile(configFilePath)
@@ -28,14 +29,14 @@ func GetConfig(configFilePath string) (AppConfig, error) {
 
 	err := conf.ReadInConfig()
 	if err != nil {
-		log.Errorf("fatal error config file: %v", err)
+		log.Printf("fatal error config file: %v\n", err)
 		return AppConfig{}, err
 	}
 	var cfg AppConfig
 
 	err = conf.Unmarshal(&cfg)
 	if err != nil {
-		log.Errorf("configuration unmarshalling failed!. Error: %v", err)
+		log.Printf("configuration unmarshalling failed!. Error: %v\n", err)
 		return cfg, err
 	}
 	//fmt.Printf("%#v\n", cfg)

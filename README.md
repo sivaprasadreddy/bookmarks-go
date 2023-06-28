@@ -1,9 +1,12 @@
 # Bookmarks Go
 
-## Live Reloading using [Air](https://github.com/cosmtrek/air)
+## Tools 
+* Live Reloading using [Air](https://github.com/cosmtrek/air)
+* Static Analysis using [staticcheck](https://staticcheck.dev/)
 
 ```shell
 $ go install github.com/cosmtrek/air@latest
+$ go install honnef.co/go/tools/cmd/staticcheck@latest
 ```
 
 ## Run application
@@ -26,7 +29,7 @@ $ go tool cover -html=coverage.out
 ## Build the application
 
 ```shell
-$ go build -o ./dist/bookmarks cmd/bookmarks/main.go
-$ ./dist/bookmarks
+$ go build -o ./bin/bookmarks cmd/bookmarks/main.go
+$ ./bin/bookmarks
 $ open http://localhost:8080
 ```
