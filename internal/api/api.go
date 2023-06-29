@@ -37,10 +37,10 @@ func (b BookmarkController) FindAll(c *gin.Context) {
 	c.JSON(http.StatusOK, bookmarks)
 }
 
-func (b BookmarkController) FindById(c *gin.Context) {
+func (b BookmarkController) FindByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		b.logger.Errorf("Error while parsing bookmarkId: %v", err)
+		b.logger.Errorf("Error while parsing bookmarkID: %v", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid bookmark id",
 		})
@@ -48,7 +48,7 @@ func (b BookmarkController) FindById(c *gin.Context) {
 	}
 	b.logger.Infof("Fetching bookmark by id %d", id)
 	ctx := c.Request.Context()
-	bookmark, err := b.repo.FindById(ctx, id)
+	bookmark, err := b.repo.FindByID(ctx, id)
 	if err != nil {
 		b.logger.Errorf("Error while fetching bookmark by id: %v", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -71,7 +71,7 @@ func (b BookmarkController) Create(c *gin.Context) {
 	}
 	bookmark := domain.Bookmark{
 		Title:       cb.Title,
-		Url:         cb.Url,
+		URL:         cb.URL,
 		CreatedDate: time.Now(),
 	}
 	bookmark, err := b.repo.Create(ctx, bookmark)
@@ -88,7 +88,7 @@ func (b BookmarkController) Create(c *gin.Context) {
 func (b BookmarkController) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		b.logger.Errorf("Error while parsing bookmarkId: %v", err)
+		b.logger.Errorf("Error while parsing bookmarkID: %v", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid bookmark id",
 		})
@@ -105,9 +105,9 @@ func (b BookmarkController) Update(c *gin.Context) {
 	}
 	now := time.Now()
 	bookmark := domain.Bookmark{
-		Id:          id,
+		ID:          id,
 		Title:       ub.Title,
-		Url:         ub.Url,
+		URL:         ub.URL,
 		UpdatedDate: &now,
 	}
 	_, err = b.repo.Update(ctx, bookmark)
@@ -118,14 +118,14 @@ func (b BookmarkController) Update(c *gin.Context) {
 		})
 		return
 	}
-	bookmark, _ = b.repo.FindById(c.Request.Context(), id)
+	bookmark, _ = b.repo.FindByID(c.Request.Context(), id)
 	c.JSON(http.StatusOK, bookmark)
 }
 
 func (b BookmarkController) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		b.logger.Errorf("Error while parsing bookmarkId: %v", err)
+		b.logger.Errorf("Error while parsing bookmarkID: %v", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid bookmark id",
 		})

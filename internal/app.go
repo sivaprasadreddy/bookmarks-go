@@ -55,7 +55,7 @@ func (app *App) setupRoutes() *gin.Engine {
 	apiRouter := r.Group("/api/bookmarks")
 	{
 		apiRouter.GET("", app.bookmarkController.FindAll)
-		apiRouter.GET("/:id", app.bookmarkController.FindById)
+		apiRouter.GET("/:id", app.bookmarkController.FindByID)
 		apiRouter.POST("", app.bookmarkController.Create)
 		apiRouter.PUT("/:id", app.bookmarkController.Update)
 		apiRouter.DELETE("/:id", app.bookmarkController.Delete)

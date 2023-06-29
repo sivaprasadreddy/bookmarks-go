@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sivaprasadreddy/bookmarks-go/internal/config"
-	"github.com/sivaprasadreddy/bookmarks-go/internal/logging"
-
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5"
+	"github.com/sivaprasadreddy/bookmarks-go/internal/config"
+	"github.com/sivaprasadreddy/bookmarks-go/internal/logging"
 )
 
 func GetDb(config config.AppConfig, logger *logging.Logger) *pgx.Conn {

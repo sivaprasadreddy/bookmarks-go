@@ -51,11 +51,11 @@ func (suite *ControllerTestSuite) TestGetAllBookmarks() {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	actualResponseJson := w.Body.String()
-	assert.NotEqual(t, "[]", actualResponseJson)
+	actualResponseJSON := w.Body.String()
+	assert.NotEqual(t, "[]", actualResponseJSON)
 }
 
-func (suite *ControllerTestSuite) TestGetBookmarkById() {
+func (suite *ControllerTestSuite) TestGetBookmarkByID() {
 	t := suite.T()
 	req, _ := http.NewRequest(http.MethodGet, "/api/bookmarks/1", nil)
 	w := httptest.NewRecorder()
@@ -67,9 +67,9 @@ func (suite *ControllerTestSuite) TestGetBookmarkById() {
 	err := json.NewDecoder(w.Body).Decode(&response)
 
 	assert.Nil(t, err)
-	assert.NotNil(t, response.Id)
+	assert.NotNil(t, response.ID)
 	assert.Equal(t, "How To Remove Docker Containers, Images, Volumes, and Networks", response.Title)
-	assert.Equal(t, "https://linuxize.com/post/how-to-remove-docker-images-containers-volumes-and-networks/", response.Url)
+	assert.Equal(t, "https://linuxize.com/post/how-to-remove-docker-images-containers-volumes-and-networks/", response.URL)
 	assert.NotNil(t, response.CreatedDate)
 }
 
@@ -92,9 +92,9 @@ func (suite *ControllerTestSuite) TestCreateBookmark() {
 	err := json.NewDecoder(w.Body).Decode(&response)
 
 	assert.Nil(t, err)
-	assert.NotNil(t, response.Id)
+	assert.NotNil(t, response.ID)
 	assert.Equal(t, "Test Post title", response.Title)
-	assert.Equal(t, "https://example.com", response.Url)
+	assert.Equal(t, "https://example.com", response.URL)
 	assert.NotNil(t, response.CreatedDate)
 	assert.Nil(t, response.UpdatedDate)
 }
@@ -118,9 +118,9 @@ func (suite *ControllerTestSuite) TestUpdateBookmark() {
 	err := json.NewDecoder(w.Body).Decode(&response)
 
 	assert.Nil(t, err)
-	assert.Equal(t, 1, response.Id)
+	assert.Equal(t, 1, response.ID)
 	assert.Equal(t, "Test Updated title", response.Title)
-	assert.Equal(t, "https://example2.com", response.Url)
+	assert.Equal(t, "https://example2.com", response.URL)
 	assert.NotNil(t, response.CreatedDate)
 	assert.NotNil(t, response.UpdatedDate)
 }

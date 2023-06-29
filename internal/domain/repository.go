@@ -10,10 +10,10 @@ import (
 
 type BookmarkRepository interface {
 	FindAll(ctx context.Context) ([]Bookmark, error)
-	FindById(ctx context.Context, bookmarkId int) (Bookmark, error)
+	FindByID(ctx context.Context, bookmarkID int) (Bookmark, error)
 	Create(ctx context.Context, bookmark Bookmark) (Bookmark, error)
 	Update(ctx context.Context, bookmark Bookmark) (Bookmark, error)
-	Delete(ctx context.Context, bookmarkId int) error
+	Delete(ctx context.Context, bookmarkID int) error
 }
 
 type bookmarkRepo struct {
@@ -35,7 +35,7 @@ func (repo *bookmarkRepo) FindAll(ctx context.Context) ([]Bookmark, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var b = Bookmark{}
-		err = rows.Scan(&b.Id, &b.Title, &b.Url, &b.CreatedDate, &b.UpdatedDate)
+		err = rows.Scan(&b.ID, &b.Title, &b.URL, &b.CreatedDate, &b.UpdatedDate)
 		if err != nil {
 			return nil, err
 		}
@@ -44,12 +44,12 @@ func (repo *bookmarkRepo) FindAll(ctx context.Context) ([]Bookmark, error) {
 	return bookmarks, nil
 }
 
-func (repo *bookmarkRepo) FindById(ctx context.Context, id int) (Bookmark, error) {
+func (repo *bookmarkRepo) FindByID(ctx context.Context, id int) (Bookmark, error) {
 	repo.logger.Infof("Fetching bookmark with id=%d", id)
 	var b = Bookmark{}
 	sql := "select id, title, url, created_at, updated_at FROM bookmarks where id=$1"
 	err := repo.db.QueryRow(ctx, sql, id).Scan(
-		&b.Id, &b.Title, &b.Url, &b.CreatedDate, &b.UpdatedDate)
+		&b.ID, &b.Title, &b.URL, &b.CreatedDate, &b.UpdatedDate)
 	if err != nil {
 		return Bookmark{}, err
 	}
@@ -59,19 +59,19 @@ func (repo *bookmarkRepo) FindById(ctx context.Context, id int) (Bookmark, error
 func (repo *bookmarkRepo) Create(ctx context.Context, b Bookmark) (Bookmark, error) {
 	var lastInsertID int
 	sql := "insert into bookmarks(title, url, created_at, updated_at) values($1, $2, $3, $4) RETURNING id"
-	err := repo.db.QueryRow(ctx, sql, b.Title, b.Url, b.CreatedDate, b.UpdatedDate).
+	err := repo.db.QueryRow(ctx, sql, b.Title, b.URL, b.CreatedDate, b.UpdatedDate).
 		Scan(&lastInsertID)
 	if err != nil {
 		repo.logger.Errorf("Error while inserting bookmark row: %v", err)
 		return Bookmark{}, err
 	}
-	b.Id = lastInsertID
+	b.ID = lastInsertID
 	return b, nil
 }
 
 func (repo *bookmarkRepo) Update(ctx context.Context, b Bookmark) (Bookmark, error) {
 	sql := "update bookmarks set title = $1, url=$2, updated_at=$3 where id=$4"
-	_, err := repo.db.Exec(ctx, sql, b.Title, b.Url, b.UpdatedDate, b.Id)
+	_, err := repo.db.Exec(ctx, sql, b.Title, b.URL, b.UpdatedDate, b.ID)
 	if err != nil {
 		return Bookmark{}, err
 	}
