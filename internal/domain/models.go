@@ -5,11 +5,11 @@ import (
 )
 
 type Bookmark struct {
-	ID          int        `json:"id"`
+	ID          int        `json:"id" gorm:"primaryKey"`
 	Title       string     `json:"title"`
 	URL         string     `json:"url"`
-	CreatedDate time.Time  `json:"created_date"`
-	UpdatedDate *time.Time `json:"updated_date"`
+	CreatedDate time.Time  `json:"created_date" gorm:"column:created_at"`
+	UpdatedDate *time.Time `json:"updated_date" gorm:"column:updated_at"`
 }
 
 type CreateBookmarkModel struct {

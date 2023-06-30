@@ -11,20 +11,20 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
 	"github.com/sivaprasadreddy/bookmarks-go/assets"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/api"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/config"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/db"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/domain"
 	"github.com/sivaprasadreddy/bookmarks-go/internal/logging"
+	"gorm.io/gorm"
 )
 
 type App struct {
 	Router             *gin.Engine
 	cfg                config.AppConfig
 	logger             *logging.Logger
-	db                 *pgx.Conn
+	db                 *gorm.DB
 	bookmarkController *api.BookmarkController
 }
 
@@ -38,8 +38,8 @@ func (app *App) init() {
 	app.logger = logging.NewLogger(app.cfg)
 	app.db = db.GetDb(app.cfg, app.logger)
 
-	bookmarksRepo := domain.NewBookmarkRepo(app.db, app.logger)
-	app.bookmarkController = api.NewBookmarkController(bookmarksRepo, app.logger)
+	bookmarksGormRepo := domain.NewBookmarkRepo(app.db, app.logger)
+	app.bookmarkController = api.NewBookmarkController(bookmarksGormRepo, app.logger)
 
 	app.Router = app.setupRoutes()
 }
