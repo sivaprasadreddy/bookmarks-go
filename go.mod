@@ -5,12 +5,12 @@ go 1.20
 require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-migrate/migrate/v4 v4.16.2
-	github.com/jackc/pgx/v5 v5.4.1
+	github.com/jackc/pgx/v5 v5.4.3
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
 	github.com/testcontainers/testcontainers-go v0.22.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.22.0
-	go.uber.org/zap v1.24.0
+	go.uber.org/zap v1.25.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
@@ -41,7 +41,6 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
