@@ -10,7 +10,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-const postgresImage = "postgres:15.3-alpine"
+const postgresImage = "postgres:15.4-alpine"
 const postgresPort = "5432"
 const postgresUserName = "postgres"
 const postgresPassword = "postgres"
