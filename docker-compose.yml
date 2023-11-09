@@ -2,7 +2,7 @@ version: '3.8'
 services:
 
   bookmarks-db:
-    image: postgres:15.4-alpine
+    image: postgres:16-alpine
     container_name: bookmarks-db
     environment:
       - POSTGRES_USER=postgres

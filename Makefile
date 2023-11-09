@@ -33,7 +33,10 @@ lint: # https://staticcheck.io/
 	staticcheck ./...
 
 dcup:
-	docker-compose up --build
+	docker compose up --build -d
+
+dcdn:
+	docker compose down
 
 docker-build:
 	docker build -t sivaprasadreddy/bookmarks .
