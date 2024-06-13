@@ -1,9 +1,10 @@
-new Vue({
-    el: '#app',
+const app = Vue.createApp({
     delimiters: ['${', '}'],
-    data: {
-        bookmarks: [],
-        newBookmark: {}
+    data() {
+        return {
+            bookmarks: [],
+            newBookmark: {}
+        }
     },
     created: function () {
         this.loadBookmarks();
@@ -44,3 +45,4 @@ new Vue({
     },
     computed: {}
 });
+app.mount("#app");
