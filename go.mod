@@ -2,7 +2,7 @@ module github.com/sivaprasadreddy/bookmarks-go
 
 go 1.21
 
-toolchain go1.21.6
+toolchain go1.23.4
 
 require (
 	github.com/gin-gonic/gin v1.10.0
